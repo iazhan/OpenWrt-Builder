@@ -15,9 +15,9 @@ function git_sparse_clone() {
 }
 
 # ---- 添加额外插件 ----
-git_sparse_clone master https://github.com/sundaqiang/openwrt-packages luci-app-wolplus
-git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki nikki
-git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-nikki
+# git_sparse_clone master https://github.com/sundaqiang/openwrt-packages luci-app-wolplus
+# git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki nikki
+# git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-nikki
 
 # ---- 科学上网插件 ----
 # git_sparse_clone ...
@@ -42,4 +42,4 @@ git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-n
 # ---- 修改默认主题 ----
 # sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
-echo "✅ diy-part.sh 执行完毕"
+echo "✅ diy-2-packages.sh 执行完毕"
