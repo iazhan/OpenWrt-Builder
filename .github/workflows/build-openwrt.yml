@@ -58,11 +58,18 @@ jobs:
             echo "matrix={\"include\":[{\"config\":\"${{ github.event.inputs.target }}\"}]}" >> $GITHUB_OUTPUT
           else
             # 自动读取 configs/ 目录下所有 .config 文件
-            configs=$(ls configs/*.config 2>/dev/null | xargs -I{} basename {} .config | jq -R . | jq -s . | jq -c '{include: [.[] | {config: .}]}')
-            if [ "$configs" = '{"include":[]}' ] || [ -z "$configs" ]; then
-              echo "matrix={\"include\":[{\"config\":\"default\"}]}" >> $GITHUB_OUTPUT
+            set -o pipefail
+            files=$(printf '%s\n' configs/*.config 2>/dev/null \
+              | sed 's#.*/##; s/\.config$//')
+            configs=$(echo "$files" \
+              | grep -v '^default$' || true)
+            if [ -z "$configs" ]; then
+              echo 'matrix={"include":[{"config":"default"}]}' >> $GITHUB_OUTPUT
             else
-              echo "matrix=$configs" >> $GITHUB_OUTPUT
+              matrix=$(echo "$configs" \
+                | jq -R . \
+                | jq -s '{include: [.[] | {config: .}]}')
+              echo "matrix=$matrix" >> $GITHUB_OUTPUT
             fi
           fi
 
