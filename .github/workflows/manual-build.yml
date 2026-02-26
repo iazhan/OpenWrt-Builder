@@ -1,0 +1,113 @@
+name: 手动触发编译
+
+on:
+  workflow_dispatch:
+    inputs:
+      config_name:
+        description: '配置文件名 (不含 .config 后缀，如: ipq807x-ax3600)'
+        required: true
+        default: 'default'
+      ssh_debug:
+        description: '是否开启 SSH 调试 (true/false)'
+        required: false
+        default: 'false'
+
+env:
+  REPO_URL: https://github.com/LiBwrt/openwrt-6.x
+  REPO_BRANCH: main-nss
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    name: 手动编译 [${{ github.event.inputs.config_name }}]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 释放磁盘空间
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: 初始化编译环境
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq full-upgrade -y
+          sudo -E apt-get -qq install -y \
+            ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+            bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext \
+            gcc-multilib g++-multilib git gperf haveged help2man intltool libc6-dev-i386 \
+            libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev \
+            libncurses5-dev libncursesw5-dev libreadline-dev libfuse-dev libssl-dev libtool \
+            lrzsz genisoimage msmtp nano ninja-build p7zip p7zip-full patch pkgconf \
+            python3 python3-pip libpython3-dev qemu-utils rsync scons squashfs-tools \
+            subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+          sudo timedatectl set-timezone "$TZ"
+          sudo mkdir -p /workdir
+          sudo chown $USER:$GROUPS /workdir
+
+      - name: SSH 调试连接
+        uses: mxschmitt/action-tmate@v3
+        if: github.event.inputs.ssh_debug == 'true'
+        timeout-minutes: 30
+
+      - name: 克隆源码
+        working-directory: /workdir
+        run: |
+          git clone --depth 1 --single-branch --branch $REPO_BRANCH $REPO_URL openwrt
+          ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+
+      - name: 更新并安装 feeds
+        run: |
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: 加载配置
+        run: |
+          CONFIG="${{ github.event.inputs.config_name }}"
+          if [ -f "configs/${CONFIG}.config" ]; then
+            cp "configs/${CONFIG}.config" openwrt/.config
+          else
+            echo "⚠️ 未找到 configs/${CONFIG}.config，使用空配置"
+          fi
+          cd openwrt && make defconfig
+
+      - name: 下载依赖
+        run: |
+          cd openwrt
+          make download -j$(nproc)
+          find dl -size -1024c -exec rm -f {} \;
+
+      - name: 编译固件
+        id: compile
+        run: |
+          cd openwrt
+          make -j$(nproc) || make -j1 V=s
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+      - name: 整理固件
+        if: steps.compile.outputs.status == 'success'
+        run: |
+          cd openwrt/bin/targets/*/*
+          rm -rf packages
+          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+
+      - name: 上传固件
+        uses: actions/upload-artifact@v4
+        if: steps.compile.outputs.status == 'success'
+        with:
+          name: OpenWrt_${{ github.event.inputs.config_name }}_${{ env.FILE_DATE }}
+          path: ${{ env.FIRMWARE }}
+          retention-days: 14

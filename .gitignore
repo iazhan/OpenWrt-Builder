@@ -1,0 +1,17 @@
+# 编译产物
+openwrt/
+bin/
+build_dir/
+staging_dir/
+tmp/
+logs/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# 敏感信息
+.env
+secrets/
