@@ -39,7 +39,7 @@
 
 ### 第一步：获取设备配置文件
 
-在本地或参考下方[本地编译](#本地生成配置文件)生成 `.config` 文件，放入 `configs/` 目录，按设备命名：
+在本地参考下方[本地生成配置文件](#本地生成配置文件)生成 `.config` 文件，放入 `configs/` 目录，按设备命名：
 
 ```
 configs/ax3600.config
@@ -68,8 +68,8 @@ git push
 
 | 方式 | 说明 |
 |------|------|
-| 推送代码 | 修改 `configs/` 目录或 workflow 文件时自动触发 |
-| 定时编译 | 每天北京时间 10:00 自动编译 |
+| 推送代码 | 修改 `configs/`、`scripts/` 目录或 workflow 文件时自动触发 |
+| 定时编译 | 每天北京时间 10:00 执行，默认关闭；在仓库 `Settings → Secrets and variables → Actions → Variables` 中新建变量 `ENABLE_SCHEDULE`，值设为 `true` 即可开启 |
 | 上游更新 | 每6小时检查一次，有新提交自动触发 |
 | 手动触发 | 在 Actions 页面运行 `手动触发编译`，可指定配置名和是否开启 SSH 调试 |
 
@@ -116,7 +116,7 @@ echo "src-git helloworld https://github.com/fw876/helloworld.git" >> feeds.conf.
 
 ```bash
 # 修改默认 IP
-sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.1.1/192.168.100.1/g' package/base-files/files/bin/config_generate
 
 # 修改默认主机名
 sed -i 's/OpenWrt/MyRouter/g' package/base-files/files/bin/config_generate
