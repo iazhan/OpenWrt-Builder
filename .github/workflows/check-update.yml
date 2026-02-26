@@ -1,0 +1,59 @@
+name: 检查上游更新
+
+on:
+  schedule:
+    # 每6小时检查一次上游是否有新提交
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: 检查源码更新
+    runs-on: ubuntu-22.04
+    outputs:
+      has_update: ${{ steps.check.outputs.has_update }}
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 检查上游更新
+        id: check
+        run: |
+          REPO_URL="https://github.com/LiBwrt/openwrt-6.x"
+          BRANCH="main-nss"
+          
+          # 获取上游最新 commit
+          LATEST_COMMIT=$(git ls-remote $REPO_URL refs/heads/$BRANCH | cut -f1)
+          echo "上游最新 commit: $LATEST_COMMIT"
+          
+          # 读取本地记录的 commit
+          LOCAL_COMMIT=""
+          if [ -f ".last_commit" ]; then
+            LOCAL_COMMIT=$(cat .last_commit)
+          fi
+          echo "本地记录 commit: $LOCAL_COMMIT"
+          
+          if [ "$LATEST_COMMIT" != "$LOCAL_COMMIT" ]; then
+            echo "发现新提交，触发编译"
+            echo "$LATEST_COMMIT" > .last_commit
+            echo "has_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "无新提交，跳过编译"
+            echo "has_update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 提交更新记录
+        if: steps.check.outputs.has_update == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .last_commit
+          git diff --staged --quiet || git commit -m "chore: 更新上游 commit 记录 [skip ci]"
+          git push
+
+  trigger-build:
+    name: 触发编译
+    needs: check
+    if: needs.check.outputs.has_update == 'true'
+    uses: ./.github/workflows/build-openwrt.yml
