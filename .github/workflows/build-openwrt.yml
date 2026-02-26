@@ -156,6 +156,8 @@ jobs:
           make defconfig
 
       - name: 执行自定义脚本 (编译前)
+        env:
+          MATRIX_CONFIG: ${{ matrix.config }}
         run: |
           # 自动扫描并按文件名顺序执行 scripts/diy-*.sh
           # 命名规则: diy-1-xxx.sh / diy-2-xxx.sh ... 数字决定执行顺序
@@ -215,13 +217,80 @@ jobs:
         id: tag
         if: steps.compile.outputs.status == 'success'
         run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")-${{ matrix.config }}" >> $GITHUB_OUTPUT
-          touch release.txt
-          echo "### 📦 编译信息" >> release.txt
-          echo "- 编译时间: $(date '+%Y-%m-%d %H:%M:%S')" >> release.txt
-          echo "- 配置目标: ${{ matrix.config }}" >> release.txt
-          echo "- 源码分支: $REPO_BRANCH" >> release.txt
-          echo "- 源码地址: $REPO_URL" >> release.txt
+          # 生成 Release 标签（北京时间）
+          echo "release_tag=$(TZ=Asia/Shanghai date +"%Y.%m.%d-%H%M")-${{ matrix.config }}" >> $GITHUB_OUTPUT
+
+          # 获取最新 commit 信息
+          cd /workdir/openwrt
+          COMMIT_HASH=$(git log -1 --format="%H" | cut -c1-8)
+          COMMIT_AUTHOR=$(git log -1 --format="%an")
+          COMMIT_DATE=$(git log -1 --format="%cd" --date=format:"%Y-%m-%d")
+          COMMIT_MSG=$(git log -1 --format="%s")
+          KERNEL_VER=$(grep -m1 'LINUX_VERSION' include/kernel-version.mk 2>/dev/null | awk -F= '{print $2}' | tr -d ' ' || echo "未知")
+          cd $GITHUB_WORKSPACE
+
+          # 读取 cfg 配置：优先读取与 config 同名的 .cfg，没有则读取 default.cfg
+          CONFIG="${{ matrix.config }}"
+          CFG_FILE="configs/${CONFIG}.cfg"
+          [ -f "$CFG_FILE" ] || CFG_FILE="configs/default.cfg"
+
+          DEFAULT_IP="192.168.100.1"
+          DEFAULT_THEME="未设置"
+          DESC="This is OpenWrt Firmware for ${CONFIG}"
+          WIFI_SSID=""
+          WIFI_PASSWORD=""
+          NOWIFI=""
+          if [ -f "$CFG_FILE" ]; then
+            _ip=$(grep -m1 '^DEFAULT_IP=' "$CFG_FILE" | cut -d= -f2 | tr -d ' ')
+            _theme=$(grep -m1 '^DEFAULT_THEME=' "$CFG_FILE" | cut -d= -f2 | tr -d ' ')
+            _desc=$(grep -m1 '^DESC=' "$CFG_FILE" | cut -d= -f2-)
+            _ssid=$(grep -m1 '^WIFI_SSID=' "$CFG_FILE" | cut -d= -f2-)
+            _password=$(grep -m1 '^WIFI_PASSWORD=' "$CFG_FILE" | cut -d= -f2-)
+            _nowifi=$(grep -m1 '^NOWIFI=' "$CFG_FILE" | cut -d= -f2 | tr -d ' ')
+            [ -n "$_ip" ]       && DEFAULT_IP="$_ip"
+            [ -n "$_theme" ]    && DEFAULT_THEME="$_theme"
+            [ -n "$_desc" ]     && DESC="$_desc"
+            [ -n "$_ssid" ]     && WIFI_SSID="$_ssid"
+            [ -n "$_password" ] && WIFI_PASSWORD="$_password"
+            [ -n "$_nowifi" ]   && NOWIFI="$_nowifi"
+          fi
+
+          # 生成 release.txt
+          {
+            echo "$DESC"
+            echo ""
+            echo "---"
+            echo ""
+            echo "## 📦 固件信息"
+            echo ""
+            echo "| 项目 | 内容 |"
+            echo "|------|------|"
+            echo "| 🖥️ 平台 | \`${CONFIG}\` |"
+            echo "| 🔗 固件源码 | [$REPO_URL]($REPO_URL) |"
+            echo "| 🌿 源码分支 | \`$REPO_BRANCH\` |"
+            echo "| 🌐 默认地址 | \`${DEFAULT_IP}\` |"
+            echo "| 🎨 默认主题 | \`${DEFAULT_THEME}\` |"
+            echo "| 🔑 默认密码 | 无 |"
+            if [ "$NOWIFI" = "true" ]; then
+              echo "| 📶 WiFi | 无线版本不含 WiFi |"
+            elif [ -n "$WIFI_SSID" ]; then
+              echo "| 📶 WiFi 名称 | \`${WIFI_SSID}\` |"
+              echo "| 🔐 WiFi 密码 | \`${WIFI_PASSWORD}\` |"
+            fi
+            echo ""
+            echo "## 📋 固件版本"
+            echo ""
+            echo "| 项目 | 内容 |"
+            echo "|------|------|"
+            echo "| 🐧 内核版本 | \`${KERNEL_VER}\` |"
+            echo "| 👤 作者 | ${COMMIT_AUTHOR} |"
+            echo "| 📅 时间 | ${COMMIT_DATE} |"
+            echo "| 📝 内容 | ${COMMIT_MSG} |"
+            echo "| #️⃣ Hash | \`${COMMIT_HASH}\` |"
+            echo ""
+            echo "> 编译时间: $(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S') (北京时间)"
+          } > release.txt
+
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: 发布到 Release
