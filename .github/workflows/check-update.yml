@@ -10,8 +10,6 @@ jobs:
   check:
     name: 检查源码更新
     runs-on: ubuntu-22.04
-    outputs:
-      has_update: ${{ steps.check.outputs.has_update }}
 
     steps:
       - name: 检出仓库
@@ -22,18 +20,18 @@ jobs:
         run: |
           REPO_URL="https://github.com/LiBwrt/openwrt-6.x"
           BRANCH="main-nss"
-          
+
           # 获取上游最新 commit
           LATEST_COMMIT=$(git ls-remote $REPO_URL refs/heads/$BRANCH | cut -f1)
           echo "上游最新 commit: $LATEST_COMMIT"
-          
+
           # 读取本地记录的 commit
           LOCAL_COMMIT=""
           if [ -f ".last_commit" ]; then
             LOCAL_COMMIT=$(cat .last_commit)
           fi
           echo "本地记录 commit: $LOCAL_COMMIT"
-          
+
           if [ "$LATEST_COMMIT" != "$LOCAL_COMMIT" ]; then
             echo "发现新提交，触发编译"
             echo "$LATEST_COMMIT" > .last_commit
@@ -52,8 +50,9 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: 更新上游 commit 记录 [skip ci]"
           git push
 
-  trigger-build:
-    name: 触发编译
-    needs: check
-    if: needs.check.outputs.has_update == 'true'
-    uses: ./.github/workflows/build-openwrt.yml
+      - name: 触发编译
+        if: steps.check.outputs.has_update == 'true'
+        run: |
+          gh workflow run build-openwrt.yml --ref main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
