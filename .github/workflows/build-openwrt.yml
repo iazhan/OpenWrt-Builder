@@ -68,7 +68,7 @@ jobs:
             else
               matrix=$(echo "$configs" \
                 | jq -R . \
-                | jq -s '{include: [.[] | {config: .}]}')
+                | jq -sc '{include: [.[] | {config: .}]}')
               echo "matrix=$matrix" >> $GITHUB_OUTPUT
             fi
           fi
