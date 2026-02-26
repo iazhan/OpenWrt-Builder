@@ -14,32 +14,57 @@ function git_sparse_clone() {
   cd .. && rm -rf $repodir
 }
 
-# ---- 添加额外插件 ----
-# git_sparse_clone master https://github.com/sundaqiang/openwrt-packages luci-app-wolplus
-# git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki nikki
-# git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-nikki
+# ---- 移除 feeds 中的旧版包，替换为最新版 ----
+rm -rf feeds/packages/net/sing-box
+rm -rf feeds/luci/applications/luci-app-argon-config
+rm -rf feeds/luci/applications/luci-app-wechatpush
+rm -rf feeds/luci/applications/luci-app-appfilter
+rm -rf feeds/luci/applications/luci-app-frpc
+rm -rf feeds/luci/applications/luci-app-frps
+rm -rf feeds/luci/themes/luci-theme-argon
+rm -rf feeds/packages/net/open-app-filter
+rm -rf feeds/packages/net/ariang
+rm -rf feeds/packages/net/frp
+rm -rf feeds/packages/lang/golang
+
+# ---- sing-box 最新版（放回 feeds 目录）----
+git_sparse_clone main https://github.com/sbwml/openwrt_helloworld net/sing-box
+mv -f package/sing-box feeds/packages/net/sing-box
+
+# ---- ariang & golang & frp（放回 feeds 目录）----
+git_sparse_clone ariang https://github.com/laipeng668/packages net/ariang
+git_sparse_clone master https://github.com/laipeng668/packages lang/golang
+mv -f package/golang feeds/packages/lang/golang
+git_sparse_clone frp https://github.com/laipeng668/packages net/frp
+mv -f package/frp feeds/packages/net/frp
+git_sparse_clone frp https://github.com/laipeng668/luci applications/luci-app-frpc applications/luci-app-frps
+mv -f package/luci-app-frpc feeds/luci/applications/luci-app-frpc
+mv -f package/luci-app-frps feeds/luci/applications/luci-app-frps
+
+# ---- 主题 ----
+git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon feeds/luci/themes/luci-theme-argon
+git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config feeds/luci/applications/luci-app-argon-config
+git clone --depth=1 https://github.com/eamonxg/luci-theme-aurora feeds/luci/themes/luci-theme-aurora
+git clone --depth=1 https://github.com/eamonxg/luci-app-aurora-config feeds/luci/applications/luci-app-aurora-config
+
+# ---- 额外插件 ----
+git_sparse_clone main https://github.com/VIKINGYFY/packages luci-app-wolplus
+git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki nikki
+git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-nikki
+git clone --depth=1 https://github.com/sbwml/luci-app-openlist2 package/openlist2
+git clone --depth=1 https://github.com/gdy666/luci-app-lucky package/luci-app-lucky
+git clone --depth=1 https://github.com/tty228/luci-app-wechatpush package/luci-app-wechatpush
+git clone --depth=1 https://github.com/destan19/OpenAppFilter.git package/OpenAppFilter
+git clone --depth=1 https://github.com/lwb1978/openwrt-gecoosac package/openwrt-gecoosac
+git clone --depth=1 https://github.com/NONGFAH/luci-app-athena-led package/luci-app-athena-led
+chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led \
+         package/luci-app-athena-led/root/usr/sbin/athena-led
 
 # ---- 科学上网插件 ----
 # git_sparse_clone ...
 
-# ---- 主题 ----
-# git clone --depth=1 https://github.com/xxx/luci-theme-xxx package/luci-theme-xxx
-
 # ---- SmartDNS ----
 # git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
 # git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
-
-# ---- 修改默认 IP ----
-# sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
-
-# ---- 修改默认主机名 ----
-# sed -i 's/OpenWrt/MyRouter/g' package/base-files/files/bin/config_generate
-
-# ---- 修改默认时区 ----
-# sed -i "s/'UTC'/'CST-8'\n\t\tset system.@system[-1].zonename='Asia/Shanghai'/g" \
-#   package/base-files/files/bin/config_generate
-
-# ---- 修改默认主题 ----
-# sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
 echo "✅ diy-2-packages.sh 执行完毕"
