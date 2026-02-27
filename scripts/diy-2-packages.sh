@@ -49,16 +49,8 @@ git clone --depth=1 https://github.com/eamonxg/luci-app-aurora-config feeds/luci
 
 # ---- 额外插件 ----
 git_sparse_clone main https://github.com/VIKINGYFY/packages luci-app-wolplus
-git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki nikki
-git_sparse_clone main https://github.com/nikkinikki-org/OpenWrt-nikki luci-app-nikki
-git clone --depth=1 https://github.com/sbwml/luci-app-openlist2 package/openlist2
-git clone --depth=1 https://github.com/gdy666/luci-app-lucky package/luci-app-lucky
-git clone --depth=1 https://github.com/tty228/luci-app-wechatpush package/luci-app-wechatpush
-git clone --depth=1 https://github.com/destan19/OpenAppFilter.git package/OpenAppFilter
-git clone --depth=1 https://github.com/lwb1978/openwrt-gecoosac package/openwrt-gecoosac
-git clone --depth=1 https://github.com/NONGFAH/luci-app-athena-led package/luci-app-athena-led
-chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led \
-         package/luci-app-athena-led/root/usr/sbin/athena-led
+# git clone --depth=1 https://github.com/destan19/OpenAppFilter.git package/OpenAppFilter
+
 
 # ---- 科学上网插件 ----
 # git_sparse_clone ...
@@ -69,19 +61,7 @@ chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led \
 
 # ---- 重新注册替换后的包到 feeds ----
 # 直接克隆到 feeds 目录的包需要重新 install 才能被编译系统识别
-cd $GITHUB_WORKSPACE
-./scripts/feeds install -a -f luci-theme-argon
-./scripts/feeds install -a -f luci-app-argon-config
-./scripts/feeds install -a -f luci-theme-aurora
-./scripts/feeds install -a -f luci-app-aurora-config
-./scripts/feeds install -a -f sing-box
-./scripts/feeds install -a -f luci-app-frpc
-./scripts/feeds install -a -f luci-app-frps
-./scripts/feeds install -a -f frp
-./scripts/feeds install -a -f ariang
-cd /workdir/openwrt
-
-# ./scripts/feeds update -a
-# ./scripts/feeds install -a
+./scripts/feeds update -a
+./scripts/feeds install -a
 
 echo "✅ diy-2-packages.sh 执行完毕"
