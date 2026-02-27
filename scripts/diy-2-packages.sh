@@ -16,13 +16,18 @@ function git_sparse_clone() {
 
 # ---- 移除 feeds 中的旧版包，替换为最新版 ----
 rm -rf feeds/packages/net/sing-box
+rm -rf feeds/packages/lang/golang
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-aurora
 
-# ---- sing-box 最新版（放回 feeds 目录）----
-git_sparse_clone main https://github.com/sbwml/openwrt_helloworld net/sing-box
-mv -f package/sing-box feeds/packages/net/sing-box
+# ---- sing-box 及相关包（按仓库 README 官方推荐方式）----
+rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
+git clone https://github.com/sbwml/openwrt_helloworld package/helloworld
+
+# ---- 更新 golang 最新工具链 ----
+rm -rf feeds/packages/lang/golang
+git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/lang/golang
 
 # ---- 主题（克隆到 feeds 目录）----
 git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon feeds/luci/themes/luci-theme-argon
