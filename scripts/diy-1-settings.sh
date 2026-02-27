@@ -96,21 +96,21 @@ fi
 
 # ---- 高通平台专属调整 ----
 # 取消 nss 相关 feed，开启 sqm-nss
-{
-  echo "CONFIG_FEED_nss_packages=n"
-  echo "CONFIG_FEED_sqm_scripts_nss=n"
-  echo "CONFIG_PACKAGE_luci-app-sqm=y"
-  echo "CONFIG_PACKAGE_sqm-scripts-nss=y"
-  echo "CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y"
-} >> .config
+# {
+#   echo "CONFIG_FEED_nss_packages=n"
+#   echo "CONFIG_FEED_sqm_scripts_nss=n"
+#   echo "CONFIG_PACKAGE_luci-app-sqm=y"
+#   echo "CONFIG_PACKAGE_sqm-scripts-nss=y"
+#   echo "CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y"
+# } >> .config
 
 # 设置 NSS 固件版本（ipq50xx 用 12.2，其他用 12.5）
-echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=n" >> .config
-if [[ "${MATRIX_CONFIG,,}" == *"ipq50"* ]]; then
-  echo "CONFIG_NSS_FIRMWARE_VERSION_12_2=y" >> .config
-else
-  echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> .config
-fi
+# echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=n" >> .config
+# if [[ "${MATRIX_CONFIG,,}" == *"ipq50"* ]]; then
+#   echo "CONFIG_NSS_FIRMWARE_VERSION_12_2=y" >> .config
+# else
+#   echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> .config
+# fi
 
 # 无 WiFi 配置：替换 DTS 引用
 if [ "$NOWIFI" = "true" ]; then
