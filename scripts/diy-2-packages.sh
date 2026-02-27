@@ -1,7 +1,7 @@
 #!/bin/bash
 # ================================================
 # diy-2-packages.sh - 添加额外软件包
-# 所有包克隆到 package/ 目录，末尾统一 feeds update + install
+# 使用稀疏克隆将第三方插件加入 package/ 目录
 # ================================================
 
 # ---- Git 稀疏克隆函数（只克隆指定子目录到 package/） ----
@@ -14,36 +14,26 @@ function git_sparse_clone() {
   cd .. && rm -rf $repodir
 }
 
-# ---- 移除 feeds 中的旧版包（防止与 package/ 下的新版冲突）----
+# ---- 移除 feeds 中的旧版包，替换为最新版 ----
 rm -rf feeds/packages/net/sing-box
-rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
+rm -rf feeds/luci/themes/luci-theme-argon
+rm -rf feeds/luci/themes/luci-theme-aurora
 
-# ---- sing-box 最新版 ----
+# ---- sing-box 最新版（放回 feeds 目录）----
 git_sparse_clone main https://github.com/sbwml/openwrt_helloworld net/sing-box
+mv -f package/sing-box feeds/packages/net/sing-box
 
-# ---- 主题 ----
-git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
-git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config
+# ---- 主题（克隆到 feeds 目录）----
+git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon feeds/luci/themes/luci-theme-argon
+git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config feeds/luci/applications/luci-app-argon-config
+git clone --depth=1 https://github.com/eamonxg/luci-theme-aurora feeds/luci/themes/luci-theme-aurora
+git clone --depth=1 https://github.com/eamonxg/luci-app-aurora-config feeds/luci/applications/luci-app-aurora-config
 
-# ---- 额外插件 ----
+# ---- 额外插件（放到 package/ 目录）----
 git_sparse_clone main https://github.com/VIKINGYFY/packages luci-app-wolplus
 
-# ---- 科学上网插件 ----
-# git_sparse_clone ...
-
-# ---- SmartDNS ----
-# git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
-# git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
-
-# ---- 修复 package/ 下各包的 Makefile 路径引用 ----
-# find package/*/ -maxdepth 2 -path "*/Makefile" | \
-#   xargs -i sed -i 's/..\/..\/lang\/golang\/golang-package.mk/$(TOPDIR)\/feeds\/packages\/lang\/golang\/golang-package.mk/g' {}
-# luci.mk 路径修正
-# find package/*/ -maxdepth 2 -path "*/Makefile" | \
-#   xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
-
-# ---- 统一更新并安装所有 feeds（包括 package/ 下新增的包）----
+# ---- 重新 install，让编译系统识别替换后的包 ----
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
