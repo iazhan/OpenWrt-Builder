@@ -8,4 +8,7 @@
 # echo "src-git helloworld https://github.com/fw876/helloworld" >> feeds.conf.default
 # echo "src-git passwall https://github.com/xiaorouji/openwrt-passwall-packages" >> feeds.conf.default
 
+# ---- 添加 nikki feed ----
+echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >> feeds.conf.default
+
 echo "✅ customize.sh 执行完毕"
