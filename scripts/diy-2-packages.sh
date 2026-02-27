@@ -67,4 +67,21 @@ chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led \
 # git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
 # git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
 
+# ---- 重新注册替换后的包到 feeds ----
+# 直接克隆到 feeds 目录的包需要重新 install 才能被编译系统识别
+cd $GITHUB_WORKSPACE
+./scripts/feeds install -a -f luci-theme-argon
+./scripts/feeds install -a -f luci-app-argon-config
+./scripts/feeds install -a -f luci-theme-aurora
+./scripts/feeds install -a -f luci-app-aurora-config
+./scripts/feeds install -a -f sing-box
+./scripts/feeds install -a -f luci-app-frpc
+./scripts/feeds install -a -f luci-app-frps
+./scripts/feeds install -a -f frp
+./scripts/feeds install -a -f ariang
+cd /workdir/openwrt
+
+# ./scripts/feeds update -a
+# ./scripts/feeds install -a
+
 echo "✅ diy-2-packages.sh 执行完毕"
