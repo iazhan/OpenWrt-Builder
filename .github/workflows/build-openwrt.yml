@@ -173,6 +173,11 @@ jobs:
             done
           fi
 
+      - name: 重新同步配置
+        run: |
+          cd openwrt
+          make defconfig
+
       - name: 下载编译依赖
         id: download
         run: |
