@@ -10,6 +10,8 @@ jobs:
   check:
     name: 检查源码更新
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
 
     steps:
       - name: 检出仓库
