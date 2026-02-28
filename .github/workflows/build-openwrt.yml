@@ -323,3 +323,10 @@ jobs:
           delete_tags: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 删除旧的 Workflow 运行记录
+        uses: Mattraks/delete-workflow-runs@v2
+        if: steps.compile.outputs.status == 'success'
+        with:
+          retain_days: 1
+          keep_minimum_runs: 3
