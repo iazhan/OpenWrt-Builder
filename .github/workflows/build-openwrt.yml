@@ -77,6 +77,8 @@ jobs:
     name: 编译 ${{ matrix.config }}
     needs: matrix
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
@@ -172,6 +174,11 @@ jobs:
               echo "✅ 完成: $(basename $SCRIPT)"
             done
           fi
+
+      - name: 重新同步配置
+        run: |
+          cd openwrt
+          make defconfig
 
       - name: 下载编译依赖
         id: download
