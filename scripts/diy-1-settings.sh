@@ -112,14 +112,6 @@ fi
 #   echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> .config
 # fi
 
-# 无 WiFi 配置：替换 DTS 引用
-if [ "$NOWIFI" = "true" ]; then
-  DTS_PATH="./target/linux/qualcommax/dts/"
-  find "$DTS_PATH" -type f ! -iname '*nowifi*' \
-    -exec sed -i 's/ipq\(6018\|8074\).dtsi/ipq\1-nowifi.dtsi/g' {} +
-  echo "qualcommax nowifi DTS 设置完成"
-fi
-
 # ---- 替换 apk 软件源为国内镜像，并删除不存在的 nss_packages 源（首次启动时执行）----
 mkdir -p files/etc/uci-defaults
 cat > files/etc/uci-defaults/99-fix-apk-mirrors << 'SCRIPT'
