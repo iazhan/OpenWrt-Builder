@@ -1,7 +1,32 @@
+<div align="center">
+
 # OpenWrt Builder
 
-> 基于 [LiBwrt/openwrt-6.x](https://github.com/LiBwrt/openwrt-6.x) 的 OpenWrt 自动编译框架。  
-> 支持多设备并行编译、自动发布 Release、上游更新检测与手动 SSH 调试。
+**基于 LiBwrt 的 OpenWrt 自动编译框架**  
+多设备并行编译 · 自动发布 Release · 上游更新检测 · 手动 SSH 调试
+
+[![Build OpenWrt](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/build-openwrt.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/build-openwrt.yml)
+[![Manual Build](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/manual-build.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/manual-build.yml)
+[![Check Update](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/check-update.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/check-update.yml)
+[![Validate](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/validate-configs.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/validate-configs.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+</div>
+
+---
+
+## 📚 目录
+
+- [✨ 亮点](#-亮点)
+- [📁 仓库结构](#-仓库结构)
+- [🚀 快速开始](#-快速开始)
+- [🕹️ 触发方式](#️-触发方式)
+- [🧩 自定义脚本机制](#-自定义脚本机制)
+- [⚙️ 多设备并行说明](#️-多设备并行说明)
+- [🛠️ 本地生成配置文件](#️-本地生成配置文件)
+- [📌 默认参数](#-默认参数)
+- [❓ FAQ](#-faq)
+- [📄 License](#-license)
 
 ---
 
@@ -156,6 +181,39 @@ cp .config /path/to/this-repo/configs/your-device.config
 | 默认密码 | 无 |
 | Release 保留 | 最近 5 个 |
 | Artifact 保留 | 7 天 |
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary><b>Q1：为什么我 push 了没触发编译？</b></summary>
+
+- 请确认修改路径命中触发规则：`configs/**`、`scripts/**`、workflow 文件。  
+- 若是定时任务，请确认 `ENABLE_SCHEDULE=true`。
+
+</details>
+
+<details>
+<summary><b>Q2：如何只编译一个设备？</b></summary>
+
+在 Actions 页面运行 **手动触发编译**，填写 `config_name`（不带 `.config`）。
+
+</details>
+
+<details>
+<summary><b>Q3：编译失败后如何排查？</b></summary>
+
+到该次运行的 Artifacts 下载失败日志（已自动上传），优先看 `build.log`、`.config`。
+
+</details>
+
+<details>
+<summary><b>Q4：如何新增自定义逻辑？</b></summary>
+
+在 `scripts/` 新增 `diy-<数字>-<描述>.sh`，自动按序执行。
+
+</details>
 
 ---
 
