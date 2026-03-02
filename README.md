@@ -9,6 +9,7 @@
 [![Manual Build](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/manual-build.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/manual-build.yml)
 [![Check Update](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/check-update.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/check-update.yml)
 [![Validate](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/validate-configs.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/validate-configs.yml)
+[![Latest Release](https://img.shields.io/github/v/release/iazhan/OpenWrt-Builder?display_name=tag)](https://github.com/iazhan/OpenWrt-Builder/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 </div>
@@ -23,6 +24,8 @@
 - [🕹️ 触发方式](#️-触发方式)
 - [🧩 自定义脚本机制](#-自定义脚本机制)
 - [⚙️ 多设备并行说明](#️-多设备并行说明)
+- [📟 支持设备清单](#-支持设备清单)
+- [🖼️ 截图展示](#️-截图展示)
 - [🛠️ 本地生成配置文件](#️-本地生成配置文件)
 - [📌 默认参数](#-默认参数)
 - [❓ FAQ](#-faq)
@@ -152,6 +155,31 @@ configs/
 ```
 
 各 job 并行执行，最终分别产出固件与 Release 文件。
+
+---
+
+## 📟 支持设备清单
+
+> 以 `configs/*.config` 为准，以下为当前仓库已提供的示例。
+
+- `ZN_M2-NOWiFi`
+- `default`（回退配置）
+
+你可以通过新增 `configs/<device>.config` 扩展更多设备。
+
+---
+
+## 🖼️ 截图展示
+
+> 可在此处放置编译成功页面、Release 页面、路由后台截图。
+
+| 场景 | 预览 |
+|---|---|
+| GitHub Actions 构建记录 | _待补充截图_ |
+| Releases 固件下载页 | _待补充截图_ |
+| 路由器后台系统信息页 | _待补充截图_ |
+
+> 建议将截图放在 `docs/images/`，并使用相对路径引用。
 
 ---
 
