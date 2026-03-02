@@ -175,9 +175,9 @@ configs/
 
 | 场景 | 预览 |
 |---|---|
-| GitHub Actions 构建记录 | _待补充截图_ |
-| Releases 固件下载页 | _待补充截图_ |
-| 路由器后台系统信息页 | _待补充截图_ |
+| GitHub Actions 构建记录 | ![GitHub Actions 构建记录](docs/images/actions-build.png) |
+| Releases 固件下载页 | ![Releases 固件下载页](docs/images/releases-page.png) |
+| 路由器后台系统信息页 | ![路由器后台系统信息页](docs/images/router-status.png) |
 
 > 建议将截图放在 `docs/images/`，并使用相对路径引用。
 
