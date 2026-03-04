@@ -8,8 +8,6 @@ on:
       - 'configs/**'
       - 'scripts/**'
       - '.github/workflows/build-openwrt.yml'
-  schedule:
-    - cron: '0 2 * * *'
   pull_request:
     branches:
       - main
@@ -49,16 +47,6 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: 检查定时编译开关
-        if: github.event_name == 'schedule'
-        run: |
-          if [ "${{ vars.ENABLE_SCHEDULE }}" != "true" ]; then
-            echo "定时编译未开启，跳过本次构建"
-            echo "如需开启，请在仓库 Settings → Secrets and variables → Actions → Variables 中"
-            echo "新建变量 ENABLE_SCHEDULE，值设为 true"
-            exit 1
-          fi
-
       - name: 检出仓库
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 

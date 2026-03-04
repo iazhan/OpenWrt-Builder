@@ -1,0 +1,31 @@
+name: Auto Build Trigger
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  check-and-trigger:
+    name: 检查并触发定时编译
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: 检查开关并触发
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ vars.ENABLE_SCHEDULE }}" == "true" ]; then
+            echo "定时编译开关已打开，正在触发 build-openwrt 工作流..."
+            gh workflow run build-openwrt.yml --ref ${{ github.ref_name }}
+            echo "触发成功！"
+          else
+            echo "定时编译未开启，跳过本次构建。"
+            echo "如需开启，请在仓库 Settings → Secrets and variables → Actions → Variables 中，新建变量 ENABLE_SCHEDULE，值设为 true。"
+          fi
