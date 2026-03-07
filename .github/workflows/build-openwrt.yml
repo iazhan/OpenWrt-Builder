@@ -210,8 +210,8 @@ jobs:
           set -euo pipefail
           cd openwrt
           make download -j$(nproc)
-          find dl -size -1024c -exec ls -l {} \;
-          find dl -size -1024c -exec rm -f {} \;
+          find dl -type f -size -1024c -not -path 'dl/go-mod-cache/*' -exec ls -l {} \;
+          find dl -type f -size -1024c -not -path 'dl/go-mod-cache/*' -exec rm -f {} \;
 
       - name: 开始编译固件
         id: compile
