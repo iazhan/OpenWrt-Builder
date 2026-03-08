@@ -1,44 +1,36 @@
 #!/bin/bash
 # ================================================
 # diy-2-packages.sh - 添加额外软件包
-# 使用稀疏克隆将第三方插件加入 package/ 目录
+# 使用固定 commit 版本，保证第三方依赖可复现
 # ================================================
 
 set -euo pipefail
 
-# ---- Git 稀疏克隆函数（只克隆指定子目录到 package/） ----
-function git_sparse_clone() {
-  branch="$1" repourl="$2" && shift 2
-  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
-  repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
-  cd $repodir && git sparse-checkout set $@
-  mv -f $@ ../package
-  cd .. && rm -rf $repodir
-}
+source "$GITHUB_WORKSPACE/scripts/third-party-sources.sh"
 
-# ---- 移除 feeds 中的旧版包，替换为最新版 ----
+# ---- 移除 feeds 中的旧版包，替换为固定版本 ----
 rm -rf feeds/packages/net/sing-box
 rm -rf feeds/packages/lang/golang
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-aurora
 
-# ---- sing-box 及相关包（按仓库 README 官方推荐方式）----
+# ---- sing-box 及相关包（固定 openwrt_helloworld 版本）----
 rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
-git clone https://github.com/sbwml/openwrt_helloworld package/helloworld
+clone_pinned_repo "$OPENWRT_HELLOWORLD_REPO" "$OPENWRT_HELLOWORLD_BRANCH" "$OPENWRT_HELLOWORLD_COMMIT" package/helloworld
 
-# ---- 更新 golang 最新工具链 ----
+# ---- 固定 golang 工具链版本 ----
 rm -rf feeds/packages/lang/golang
-git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/lang/golang
+clone_pinned_repo "$GOLANG_REPO" "$GOLANG_BRANCH" "$GOLANG_COMMIT" feeds/packages/lang/golang
 
-# ---- 主题（克隆到 feeds 目录）----
-git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon feeds/luci/themes/luci-theme-argon
-git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config feeds/luci/applications/luci-app-argon-config
-git clone --depth=1 https://github.com/eamonxg/luci-theme-aurora feeds/luci/themes/luci-theme-aurora
-git clone --depth=1 https://github.com/eamonxg/luci-app-aurora-config feeds/luci/applications/luci-app-aurora-config
+# ---- 主题（固定 commit）----
+clone_pinned_repo "$ARGON_THEME_REPO" "$ARGON_THEME_BRANCH" "$ARGON_THEME_COMMIT" feeds/luci/themes/luci-theme-argon
+clone_pinned_repo "$ARGON_CONFIG_REPO" "$ARGON_CONFIG_BRANCH" "$ARGON_CONFIG_COMMIT" feeds/luci/applications/luci-app-argon-config
+clone_pinned_repo "$AURORA_THEME_REPO" "$AURORA_THEME_BRANCH" "$AURORA_THEME_COMMIT" feeds/luci/themes/luci-theme-aurora
+clone_pinned_repo "$AURORA_CONFIG_REPO" "$AURORA_CONFIG_BRANCH" "$AURORA_CONFIG_COMMIT" feeds/luci/applications/luci-app-aurora-config
 
-# ---- 额外插件（放到 package/ 目录）----
-git_sparse_clone main https://github.com/VIKINGYFY/packages luci-app-wolplus
+# ---- 额外插件（固定 commit 稀疏克隆）----
+git_sparse_clone_pinned "$EXTRA_PACKAGES_BRANCH" "$EXTRA_PACKAGES_REPO" "$EXTRA_PACKAGES_COMMIT" luci-app-wolplus
 
 # ---- 重新 install，让编译系统识别替换后的包 ----
 ./scripts/feeds update -a

@@ -351,6 +351,8 @@ jobs:
             [ -n "$_nowifi" ]   && NOWIFI="$_nowifi"
           fi
 
+          source "$GITHUB_WORKSPACE/scripts/third-party-sources.sh"
+
           {
             echo "$DESC"
             echo ""
@@ -383,6 +385,8 @@ jobs:
             echo "| #️⃣ Hash | \`${COMMIT_HASH}\` |"
             echo ""
             echo "> 编译时间: ${{ env.BUILD_TS_HUMAN }} (北京时间)"
+            echo ""
+            emit_third_party_markdown
             echo ""
             echo "## 📁 Release 文件命名规则"
             echo ""
