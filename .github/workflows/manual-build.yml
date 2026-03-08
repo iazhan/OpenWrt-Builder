@@ -76,6 +76,13 @@ jobs:
           git clone --depth 1 --single-branch --branch $REPO_BRANCH $REPO_URL openwrt
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
+      - name: 加载自定义 feeds
+        env:
+          CONFIG_NAME: ${{ github.event.inputs.config_name }}
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" pre-feeds
+
       - name: 更新并安装 feeds
         run: |
           set -euo pipefail
@@ -84,15 +91,24 @@ jobs:
           ./scripts/feeds install -a
 
       - name: 加载配置
+        env:
+          CONFIG_NAME: ${{ github.event.inputs.config_name }}
         run: |
           set -euo pipefail
-          CONFIG="${{ github.event.inputs.config_name }}"
-          if [ -f "configs/${CONFIG}.config" ]; then
-            cp "configs/${CONFIG}.config" openwrt/.config
-          else
-            echo "⚠️ 未找到 configs/${CONFIG}.config，使用空配置"
-          fi
-          cd openwrt && make defconfig
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" load-config
+
+      - name: 执行自定义脚本 (编译前)
+        env:
+          CONFIG_NAME: ${{ github.event.inputs.config_name }}
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" run-diy-scripts
+
+      - name: 重新同步配置
+        run: |
+          set -euo pipefail
+          cd openwrt
+          make defconfig
 
       - name: 缓存 dl 和 ccache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -110,7 +126,7 @@ jobs:
           set -euo pipefail
           cd openwrt
           make download -j$(nproc)
-          find dl -type f -size -1024c -not -path 'dl/go-mod-cache/*' -exec rm -f {} \;
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" clean-downloads
 
       - name: 编译固件
         id: compile

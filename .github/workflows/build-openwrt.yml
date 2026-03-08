@@ -137,15 +137,11 @@ jobs:
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
       - name: 加载自定义 feeds
+        env:
+          CONFIG_NAME: ${{ matrix.config }}
         run: |
           set -euo pipefail
-          if [ -f "feeds.conf.default" ]; then
-            cp feeds.conf.default openwrt/feeds.conf.default
-          fi
-          if [ -f "scripts/customize.sh" ]; then
-            chmod +x scripts/customize.sh
-            cd openwrt && $GITHUB_WORKSPACE/scripts/customize.sh
-          fi
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" pre-feeds
 
       - name: 更新并安装 feeds
         run: |
@@ -155,37 +151,18 @@ jobs:
           ./scripts/feeds install -a
 
       - name: 加载配置文件
+        env:
+          CONFIG_NAME: ${{ matrix.config }}
         run: |
           set -euo pipefail
-          CONFIG_FILE="configs/${{ matrix.config }}.config"
-          if [ -f "$CONFIG_FILE" ]; then
-            cp "$CONFIG_FILE" openwrt/.config
-            echo "已加载配置: $CONFIG_FILE"
-          elif [ -f "configs/default.config" ]; then
-            cp "configs/default.config" openwrt/.config
-            echo "已加载默认配置"
-          else
-            echo "未找到配置文件，使用默认配置"
-          fi
-          cd openwrt
-          make defconfig
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" load-config
 
       - name: 执行自定义脚本 (编译前)
         env:
-          MATRIX_CONFIG: ${{ matrix.config }}
+          CONFIG_NAME: ${{ matrix.config }}
         run: |
           set -euo pipefail
-          DIY_SCRIPTS=$(ls $GITHUB_WORKSPACE/scripts/diy-*.sh 2>/dev/null | sort)
-          if [ -z "$DIY_SCRIPTS" ]; then
-            echo "⚠️ 未找到任何 diy-*.sh 脚本，跳过"
-          else
-            for SCRIPT in $DIY_SCRIPTS; do
-              echo "▶️ 执行: $(basename $SCRIPT)"
-              chmod +x "$SCRIPT"
-              cd /workdir/openwrt && bash "$SCRIPT"
-              echo "✅ 完成: $(basename $SCRIPT)"
-            done
-          fi
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" run-diy-scripts
 
       - name: 重新同步配置
         run: |
@@ -210,8 +187,7 @@ jobs:
           set -euo pipefail
           cd openwrt
           make download -j$(nproc)
-          find dl -type f -size -1024c -not -path 'dl/go-mod-cache/*' -exec ls -l {} \;
-          find dl -type f -size -1024c -not -path 'dl/go-mod-cache/*' -exec rm -f {} \;
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" clean-downloads
 
       - name: 开始编译固件
         id: compile
