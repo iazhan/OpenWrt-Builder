@@ -176,7 +176,7 @@ jobs:
           path: |
             openwrt/dl
             /workdir/.ccache
-          key: ${{ runner.os }}-openwrt-${{ matrix.config }}-${{ hashFiles('configs/*.config', 'scripts/**/*.sh') }}
+          key: ${{ runner.os }}-openwrt-${{ matrix.config }}-${{ hashFiles('configs/*.config', 'configs/*.cfg', 'scripts/**/*.sh', 'feeds.conf.default') }}
           restore-keys: |
             ${{ runner.os }}-openwrt-${{ matrix.config }}-
             ${{ runner.os }}-openwrt-
