@@ -116,7 +116,7 @@ jobs:
           path: |
             openwrt/dl
             /workdir/.ccache
-          key: ${{ runner.os }}-manual-${{ github.event.inputs.config_name }}-${{ hashFiles('configs/*.config', 'scripts/**/*.sh') }}
+          key: ${{ runner.os }}-manual-${{ github.event.inputs.config_name }}-${{ hashFiles('configs/*.config', 'configs/*.cfg', 'scripts/**/*.sh', 'feeds.conf.default') }}
           restore-keys: |
             ${{ runner.os }}-manual-${{ github.event.inputs.config_name }}-
             ${{ runner.os }}-manual-
