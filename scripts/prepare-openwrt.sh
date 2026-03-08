@@ -1,9 +1,23 @@
 #!/bin/bash
+# OpenWrt 预处理阶段的共享辅助脚本。
+#
+# 该脚本会动态发现 scripts/diy-*.sh，目的是让
+# fork 用户可以自由删除、修改、重命名或新增 diy 脚本，而不需要
+# 同步修改 GitHub Actions workflow。
+#
+# 执行顺序由文件名排序决定，因此 diy-<数字>-<名称>.sh
+# 仍然是约定的自定义接口。
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: prepare-openwrt.sh <pre-feeds|load-config|run-diy-scripts|clean-downloads>
+用法：prepare-openwrt.sh <pre-feeds|load-config|run-diy-scripts|clean-downloads>
+
+可用子命令：
+  pre-feeds        在 feeds update 前执行 customize.sh，并覆盖 feeds.conf.default
+  load-config      加载 configs/<设备>.config（找不到则回退到 default.config）并执行 make defconfig
+  run-diy-scripts  按文件名排序执行所有 diy-*.sh 脚本
+  clean-downloads  清理 dl 目录中的异常小文件，但保留 go-mod-cache
 EOF
 }
 
@@ -18,6 +32,7 @@ if [ ! -d "${OPENWRT_DIR}" ]; then
 fi
 OPENWRT_DIR="$(cd "${OPENWRT_DIR}" && pwd)"
 
+# 在 feeds update 前同步 feeds.conf.default，并执行可选的 customize.sh。
 run_customize() {
   if [ -f "${WORKSPACE_DIR}/feeds.conf.default" ]; then
     cp "${WORKSPACE_DIR}/feeds.conf.default" "${OPENWRT_DIR}/feeds.conf.default"
@@ -32,6 +47,7 @@ run_customize() {
   fi
 }
 
+# 加载目标设备的 .config；若不存在则回退到 default.config，并同步 defconfig。
 load_config() {
   local config_file="${WORKSPACE_DIR}/configs/${CONFIG_NAME}.config"
   local default_config="${WORKSPACE_DIR}/configs/default.config"
@@ -52,6 +68,7 @@ load_config() {
   )
 }
 
+# 动态发现并执行 diy-*.sh，支持 fork 用户自由增删改脚本文件。
 run_diy_scripts() {
   shopt -s nullglob
   local diy_scripts=("${WORKSPACE_DIR}"/scripts/diy-*.sh)
@@ -78,6 +95,7 @@ run_diy_scripts() {
   done
 }
 
+# 清理下载目录中的异常小文件，避免污染编译，但保留 Go 模块缓存。
 clean_downloads() {
   (
     cd "${OPENWRT_DIR}"
