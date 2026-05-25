@@ -16,6 +16,7 @@ rm -rf feeds/packages/lang/golang
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-aurora
+rm -rf package/daed package/luci-app-daed
 
 # ---- sing-box 及相关包（固定 openwrt_helloworld 版本）----
 rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
@@ -33,6 +34,18 @@ clone_pinned_repo "$AURORA_CONFIG_REPO" "$AURORA_CONFIG_BRANCH" "$AURORA_CONFIG_
 
 # ---- 额外插件（固定 commit 稀疏克隆）----
 git_sparse_clone_pinned "$EXTRA_PACKAGES_BRANCH" "$EXTRA_PACKAGES_REPO" "$EXTRA_PACKAGES_COMMIT" luci-app-wolplus
+
+# ---- DAED 代理栈（固定 commit 稀疏克隆）----
+git_sparse_clone_pinned "$DAED_BRANCH" "$DAED_REPO" "$DAED_COMMIT" daed luci-app-daed
+
+# DAED 包在首次 make defconfig 后才被克隆进 package/，
+# 这里重新写入包选择，确保后续 defconfig 能解析并保留。
+{
+  echo "CONFIG_PACKAGE_daed=y"
+  echo "CONFIG_PACKAGE_luci-app-daed=y"
+  echo "CONFIG_DAED_USE_KERNEL_BTF=y"
+  echo "# CONFIG_DAED_USE_VMLINUX_BTF is not set"
+} >> .config
 
 # ---- 重新 install，让编译系统识别替换后的包 ----
 ./scripts/feeds update -a
