@@ -32,6 +32,10 @@ DAED_REPO="https://github.com/QiuSimons/luci-app-daed"
 DAED_BRANCH="kix"
 DAED_COMMIT="0a33ae2d6ef98cf5f22ce20acaae6148d118118d"
 
+LUCKY_REPO="https://github.com/gdy666/luci-app-lucky"
+LUCKY_BRANCH="main"
+LUCKY_COMMIT="c1730565c6df4ab30d345cf73584f03f5cc7bc8f"
+
 clone_pinned_repo() {
   local repo="$1"
   local branch="$2"
@@ -90,5 +94,6 @@ emit_third_party_markdown() {
 - \`luci-app-aurora-config\`: [eamonxg/luci-app-aurora-config@${AURORA_CONFIG_COMMIT}](https://github.com/eamonxg/luci-app-aurora-config/commit/${AURORA_CONFIG_COMMIT})
 - \`luci-app-wolplus\`: [VIKINGYFY/packages@${EXTRA_PACKAGES_COMMIT}](https://github.com/VIKINGYFY/packages/commit/${EXTRA_PACKAGES_COMMIT})
 - \`luci-app-daed\`: [QiuSimons/luci-app-daed@${DAED_COMMIT}](https://github.com/QiuSimons/luci-app-daed/commit/${DAED_COMMIT})
+- \`luci-app-lucky\`: [gdy666/luci-app-lucky@${LUCKY_COMMIT}](https://github.com/gdy666/luci-app-lucky/commit/${LUCKY_COMMIT})
 EOF
 }
