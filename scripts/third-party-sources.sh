@@ -28,10 +28,6 @@ EXTRA_PACKAGES_REPO="https://github.com/VIKINGYFY/packages"
 EXTRA_PACKAGES_BRANCH="main"
 EXTRA_PACKAGES_COMMIT="c7fc2e68e5252768616a3a281ce673bd4b19b7d0"
 
-DAED_REPO="https://github.com/QiuSimons/luci-app-daed"
-DAED_BRANCH="kix"
-DAED_COMMIT="0a33ae2d6ef98cf5f22ce20acaae6148d118118d"
-
 LUCKY_REPO="https://github.com/gdy666/luci-app-lucky"
 LUCKY_BRANCH="main"
 LUCKY_COMMIT="c1730565c6df4ab30d345cf73584f03f5cc7bc8f"
@@ -93,7 +89,6 @@ emit_third_party_markdown() {
 - \`luci-theme-aurora\`: [eamonxg/luci-theme-aurora@${AURORA_THEME_COMMIT}](https://github.com/eamonxg/luci-theme-aurora/commit/${AURORA_THEME_COMMIT})
 - \`luci-app-aurora-config\`: [eamonxg/luci-app-aurora-config@${AURORA_CONFIG_COMMIT}](https://github.com/eamonxg/luci-app-aurora-config/commit/${AURORA_CONFIG_COMMIT})
 - \`luci-app-wolplus\`: [VIKINGYFY/packages@${EXTRA_PACKAGES_COMMIT}](https://github.com/VIKINGYFY/packages/commit/${EXTRA_PACKAGES_COMMIT})
-- \`luci-app-daed\`: [QiuSimons/luci-app-daed@${DAED_COMMIT}](https://github.com/QiuSimons/luci-app-daed/commit/${DAED_COMMIT})
 - \`luci-app-lucky\`: [gdy666/luci-app-lucky@${LUCKY_COMMIT}](https://github.com/gdy666/luci-app-lucky/commit/${LUCKY_COMMIT})
 EOF
 }
