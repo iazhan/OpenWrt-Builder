@@ -16,7 +16,6 @@ rm -rf feeds/packages/lang/golang
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-aurora
-rm -rf package/daed package/luci-app-daed
 rm -rf package/lucky package/luci-app-lucky
 
 # ---- sing-box 及相关包（固定 openwrt_helloworld 版本）----
@@ -38,9 +37,6 @@ git_sparse_clone_pinned "$EXTRA_PACKAGES_BRANCH" "$EXTRA_PACKAGES_REPO" "$EXTRA_
 
 # ---- Lucky（固定 commit 稀疏克隆）----
 git_sparse_clone_pinned "$LUCKY_BRANCH" "$LUCKY_REPO" "$LUCKY_COMMIT" lucky luci-app-lucky
-
-# ---- DAED 代理栈（固定 commit 稀疏克隆）----
-git_sparse_clone_pinned "$DAED_BRANCH" "$DAED_REPO" "$DAED_COMMIT" daed luci-app-daed
 
 # ---- 重新 install，让编译系统识别替换后的包 ----
 ./scripts/feeds update -a
