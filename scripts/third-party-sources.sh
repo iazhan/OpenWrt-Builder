@@ -32,6 +32,10 @@ LUCKY_REPO="https://github.com/gdy666/luci-app-lucky"
 LUCKY_BRANCH="main"
 LUCKY_COMMIT="c1730565c6df4ab30d345cf73584f03f5cc7bc8f"
 
+OPENCLASH_REPO="https://github.com/vernesong/OpenClash"
+OPENCLASH_BRANCH="master"
+OPENCLASH_COMMIT="a9e5d98cd664917724dbfb0a31440e512ab45a1b"
+
 clone_pinned_repo() {
   local repo="$1"
   local branch="$2"
@@ -90,5 +94,6 @@ emit_third_party_markdown() {
 - \`luci-app-aurora-config\`: [eamonxg/luci-app-aurora-config@${AURORA_CONFIG_COMMIT}](https://github.com/eamonxg/luci-app-aurora-config/commit/${AURORA_CONFIG_COMMIT})
 - \`luci-app-wolplus\`: [VIKINGYFY/packages@${EXTRA_PACKAGES_COMMIT}](https://github.com/VIKINGYFY/packages/commit/${EXTRA_PACKAGES_COMMIT})
 - \`luci-app-lucky\`: [gdy666/luci-app-lucky@${LUCKY_COMMIT}](https://github.com/gdy666/luci-app-lucky/commit/${LUCKY_COMMIT})
+- \`luci-app-openclash\`: [vernesong/OpenClash@${OPENCLASH_COMMIT}](https://github.com/vernesong/OpenClash/commit/${OPENCLASH_COMMIT})
 EOF
 }

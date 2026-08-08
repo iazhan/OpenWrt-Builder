@@ -15,7 +15,7 @@ usage() {
 
 可用子命令：
   pre-feeds        在 feeds update 前执行 customize.sh，并覆盖 feeds.conf.default
-  load-config      加载 configs/<设备>.config（找不到则回退到 default.config）并执行 make defconfig
+  load-config      加载 configs/<设备>.config（找不到则回退到 default.config），延后到 DIY 后统一执行 make defconfig
   run-diy-scripts  按文件名排序执行所有 diy-*.sh 脚本
   clean-downloads  清理 dl 目录中的异常小文件，但保留 go-mod-cache
 EOF
@@ -47,7 +47,8 @@ run_customize() {
   fi
 }
 
-# 加载目标设备的 .config；若不存在则回退到 default.config，并同步 defconfig。
+# 加载目标设备的 .config；若不存在则回退到 default.config。
+# 配置解析延后到所有 DIY 包加入之后，由工作流统一执行 make defconfig。
 load_config() {
   local config_file="${WORKSPACE_DIR}/configs/${CONFIG_NAME}.config"
   local default_config="${WORKSPACE_DIR}/configs/default.config"
@@ -61,11 +62,6 @@ load_config() {
   else
     echo "未找到配置文件，使用默认配置"
   fi
-
-  (
-    cd "${OPENWRT_DIR}"
-    make defconfig
-  )
 }
 
 # 动态发现并执行 diy-*.sh，支持 fork 用户自由增删改脚本文件。
