@@ -16,7 +16,7 @@ rm -rf feeds/packages/lang/golang
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-aurora
-rm -rf package/lucky package/luci-app-lucky
+rm -rf package/lucky package/luci-app-lucky package/luci-app-openclash
 
 # ---- sing-box 及相关包（固定 openwrt_helloworld 版本）----
 rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
@@ -37,6 +37,9 @@ git_sparse_clone_pinned "$EXTRA_PACKAGES_BRANCH" "$EXTRA_PACKAGES_REPO" "$EXTRA_
 
 # ---- Lucky（固定 commit 稀疏克隆）----
 git_sparse_clone_pinned "$LUCKY_BRANCH" "$LUCKY_REPO" "$LUCKY_COMMIT" lucky luci-app-lucky
+
+# ---- OpenClash（固定 commit 稀疏克隆）----
+git_sparse_clone_pinned "$OPENCLASH_BRANCH" "$OPENCLASH_REPO" "$OPENCLASH_COMMIT" luci-app-openclash
 
 # ---- 重新 install，让编译系统识别替换后的包 ----
 ./scripts/feeds update -a
