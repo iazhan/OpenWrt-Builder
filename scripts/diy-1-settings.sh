@@ -100,15 +100,16 @@ fi
 #   echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> .config
 # fi
 
-# ---- 替换 apk 软件源为国内镜像，并删除不存在的 nss_packages 源（首次启动时执行）----
+# ---- 替换 apk 软件源为南京大学镜像，并删除不存在的 nss_packages 源（首次启动时执行）----
 mkdir -p files/etc/uci-defaults
 cat > files/etc/uci-defaults/99-fix-apk-mirrors << 'SCRIPT'
 #!/bin/sh
 DISTFEEDS="/etc/apk/repositories.d/distfeeds.list"
 if [ -f "$DISTFEEDS" ]; then
     sed -i \
-      -e 's,https://downloads.immortalwrt.org,https://mirrors.cernet.edu.cn/immortalwrt,g' \
-      -e 's,https://mirrors.vsean.net/openwrt,https://mirrors.cernet.edu.cn/immortalwrt,g' \
+      -e 's,https://downloads.immortalwrt.org,https://mirror.nju.edu.cn/immortalwrt,g' \
+      -e 's,https://mirrors.vsean.net/openwrt,https://mirror.nju.edu.cn/immortalwrt,g' \
+      -e 's,https://mirrors.cernet.edu.cn/immortalwrt,https://mirror.nju.edu.cn/immortalwrt,g' \
       "$DISTFEEDS"
     sed -i '/nss_packages/d' "$DISTFEEDS"
 fi
