@@ -2,7 +2,7 @@
 
 # OpenWrt Builder
 
-基于 [LiBwrt/openwrt-6.x](https://github.com/LiBwrt/openwrt-6.x) 的 OpenWrt 自动化编译模板仓库
+基于 [LiBwrt/LibWrt](https://github.com/LiBwrt/LibWrt) 的 OpenWrt 自动化编译模板仓库
 
 [![Build OpenWrt](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/build-openwrt.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/build-openwrt.yml)
 [![Manual Build](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/manual-build.yml/badge.svg)](https://github.com/iazhan/OpenWrt-Builder/actions/workflows/manual-build.yml)
@@ -19,7 +19,7 @@
 
 ## 项目定位
 
-本仓库不是 OpenWrt 源码仓库，而是 [LiBwrt/openwrt-6.x](https://github.com/LiBwrt/openwrt-6.x) 的自动化编译外壳，用来完成以下事情：
+本仓库不是 OpenWrt 源码仓库，而是 [LiBwrt/LibWrt](https://github.com/LiBwrt/LibWrt) 的自动化编译外壳，用来完成以下事情：
 
 - 拉取上游 OpenWrt 源码
 - 加载 `configs/*.config` 与 `configs/*.cfg`
@@ -30,8 +30,12 @@
 
 当前仓库默认使用的上游信息：
 
-- 上游仓库：`LiBwrt/openwrt-6.x`
-- 上游分支：`main-nss`
+- 上游仓库：`LiBwrt/LibWrt`
+- 上游分支：`25.12-nss`
+
+> [!NOTE]
+> 上游 `LiBwrt/openwrt-6.x` 已更名为 [`LiBwrt/LibWrt`](https://github.com/LiBwrt/LibWrt)，分支从 `main-nss` 改为 `25.12-nss`（内核 6.12，基线由 OpenWrt 6.x 切到 ImmortalWrt 25.12）。
+> 旧地址仍会 301 重定向，但 `main-nss` 分支已不存在，必须改用新地址 + 新分支，否则克隆会直接失败。
 
 ## 当前仓库实际编译范围
 
@@ -49,7 +53,8 @@
 
 ## 上游支持设备清单
 
-下面这份列表是按 **2026-03-08** 查询上游 `LiBwrt/openwrt-6.x` 的 `main-nss` 分支后整理的，主要对应 `qualcommax/ipq60xx` 与 `qualcommax/ipq807x` 设备。  
+下面这份列表是按 **2026-03-08** 查询当时上游 `LiBwrt/openwrt-6.x` 的 `main-nss` 分支整理的，主要对应 `qualcommax/ipq60xx` 与 `qualcommax/ipq807x` 设备。  
+上游已切到 `LiBwrt/LibWrt` 的 `25.12-nss`（ImmortalWrt 25.12 基线），设备清单可能有增减，以源码 `target/linux/qualcommax/image/` 为准。  
 这表示 **上游源码支持这些型号**，不表示本仓库都会编译它们；**本仓库当前仍然只编译兆能 M2（NOWiFi）**。  
 
 <details>
@@ -110,6 +115,7 @@
 - `push` 后自动构建
 - 支持 GitHub Actions 手动选择配置编译
 - 支持定时检查上游更新并触发构建
+- 上游更新状态保存在 Actions Cache 中，不产生额外的提交记录
 - 构建成功后自动上传 Artifact 与 Release
 - 构建失败后自动上传失败日志
 - 提供 `validate-configs.yml` 校验配置文件与脚本命名
@@ -121,7 +127,7 @@
 | --- | --- | --- |
 | 自动编译 | `.github/workflows/build-openwrt.yml` | 代码变更后自动构建，支持矩阵遍历 `configs/*.config` |
 | 手动编译 | `.github/workflows/manual-build.yml` | 在 Actions 页面手动指定配置名称进行构建 |
-| 上游更新检查 | `.github/workflows/check-update.yml` | 检查 `LiBwrt/openwrt-6.x` 是否有新提交 |
+| 上游更新检查 | `.github/workflows/check-update.yml` | 检查 `LiBwrt/LibWrt` 是否有新提交 |
 | 定时触发 | `.github/workflows/schedule-build.yml` | 配合仓库变量按计划触发构建 |
 | 配置校验 | `.github/workflows/validate-configs.yml` | 校验 `.config`、`.cfg` 和脚本命名 / 语法 |
 
@@ -205,7 +211,7 @@ diy-<数字>-<描述>.sh
 ### 1. 生成你自己的 `.config`
 
 ```bash
-git clone --depth 1 --single-branch --branch main-nss https://github.com/LiBwrt/openwrt-6.x openwrt
+git clone --depth 1 --single-branch --branch 25.12-nss https://github.com/LiBwrt/LibWrt openwrt
 cd openwrt
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -249,8 +255,8 @@ git push
 
 | 项目 | 当前值 |
 | --- | --- |
-| 上游源码 | `LiBwrt/openwrt-6.x` |
-| 上游分支 | `main-nss` |
+| 上游源码 | `LiBwrt/LibWrt` |
+| 上游分支 | `25.12-nss` |
 | 当前仓库实际编译设备 | `兆能 M2 无 Wi-Fi 版（ZN M2 / NOWiFi）` |
 | 设备配置 | `configs/ZN_M2-NOWiFi.config` |
 | 参数配置 | `configs/ZN_M2-NOWiFi.cfg` |

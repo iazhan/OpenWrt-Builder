@@ -20,8 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  REPO_URL: https://github.com/LiBwrt/openwrt-6.x
-  REPO_BRANCH: main-nss
+  # 上游已由 LiBwrt/openwrt-6.x 更名为 LiBwrt/LibWrt，分支同步改为 25.12-nss
+  REPO_URL: https://github.com/LiBwrt/LibWrt
+  REPO_BRANCH: 25.12-nss
   TZ: Asia/Shanghai
 
 jobs:
@@ -105,10 +106,28 @@ jobs:
           bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" run-diy-scripts
 
       - name: 重新同步配置
+        env:
+          CONFIG_NAME: ${{ github.event.inputs.config_name }}
         run: |
           set -euo pipefail
           cd openwrt
           make defconfig
+
+          # 上游基线已切到 25.12-nss（ImmortalWrt 25.12 / 内核 6.12），
+          # 旧 6.x 的符号可能被 defconfig 静默丢弃。这里确认目标平台与设备仍在，
+          # 避免编出一个"成功但不对"的固件。
+          SRC_CFG="$GITHUB_WORKSPACE/configs/${CONFIG_NAME}.config"
+          [ -f "$SRC_CFG" ] || SRC_CFG="$GITHUB_WORKSPACE/configs/default.config"
+          if ! grep -q '^CONFIG_TARGET_[a-z0-9_]*=y' .config; then
+            echo "❌ defconfig 后 .config 中没有任何 CONFIG_TARGET 配置，请检查 ${CONFIG_NAME}.config 是否匹配当前上游"
+            exit 1
+          fi
+          if grep -q '^CONFIG_TARGET_DEVICE_.*=y' "$SRC_CFG" 2>/dev/null \
+             && ! grep -q '^CONFIG_TARGET_DEVICE_.*=y' .config; then
+            echo "❌ 目标设备在 defconfig 后丢失，上游可能已移除该设备或符号已变更"
+            exit 1
+          fi
+          grep -E '^CONFIG_TARGET_(DEVICE_)?[a-z0-9_]+=y' .config | head -20
 
       - name: 缓存 dl 和 ccache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830

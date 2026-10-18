@@ -15,52 +15,51 @@ jobs:
     name: 检查源码更新
     runs-on: ubuntu-22.04
     permissions:
-      contents: write
+      # 触发 build-openwrt 工作流 + 读写 Actions Cache
       actions: write
 
     steps:
-      - name: 检出仓库
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      # 状态存在 Actions Cache 里，不再写文件提交到仓库，避免污染 git 记录。
+      # key 用当前 run_id 保证不会命中，实际靠 restore-keys 取最近一次保存的缓存。
+      - name: 恢复已编译的上游 commit
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .upstream_commit
+          key: upstream-commit-${{ github.run_id }}
+          restore-keys: |
+            upstream-commit-
 
       - name: 检查上游更新
         id: check
         run: |
           set -euo pipefail
-          REPO_URL="https://github.com/LiBwrt/openwrt-6.x"
-          BRANCH="main-nss"
+          REPO_URL="https://github.com/LiBwrt/LibWrt"
+          BRANCH="25.12-nss"
 
           # 获取上游最新 commit
-          LATEST_COMMIT=$(git ls-remote $REPO_URL refs/heads/$BRANCH | cut -f1)
-          echo "上游最新 commit: $LATEST_COMMIT"
+          LATEST_COMMIT=$(git ls-remote "$REPO_URL" "refs/heads/$BRANCH" | cut -f1)
+          echo "上游最新 commit: ${LATEST_COMMIT:-<空>}"
 
-          # 读取本地记录的 commit
-          LOCAL_COMMIT=""
-          if [ -f ".last_commit" ]; then
-            LOCAL_COMMIT=$(cat .last_commit)
+          # 分支被改名/删除时 ls-remote 会返回空，直接失败，避免误触发编译
+          if [ -z "$LATEST_COMMIT" ]; then
+            echo "❌ 无法获取 $REPO_URL 的 $BRANCH 分支，请检查上游仓库地址或分支名是否已变更"
+            exit 1
           fi
-          echo "本地记录 commit: $LOCAL_COMMIT"
+
+          # 只认「已成功编译过」的 commit：状态由 build-openwrt 编译成功后写入 Cache
+          LOCAL_COMMIT="$(tr -d '[:space:]' < .upstream_commit 2>/dev/null || true)"
+          echo "上次编译 commit: ${LOCAL_COMMIT:-<无记录>}"
 
           if [ "$LATEST_COMMIT" != "$LOCAL_COMMIT" ]; then
             echo "发现新提交，触发编译"
-            echo "$LATEST_COMMIT" > .last_commit
-            echo "has_update=true" >> $GITHUB_OUTPUT
+            echo "has_update=true" >> "$GITHUB_OUTPUT"
           else
             echo "无新提交，跳过编译"
-            echo "has_update=false" >> $GITHUB_OUTPUT
+            echo "has_update=false" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: 提交更新记录
-        if: steps.check.outputs.has_update == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .last_commit
-          git diff --staged --quiet || git commit -m "chore: 更新上游 commit 记录 [skip ci]"
-          git push
 
       - name: 触发编译
         if: steps.check.outputs.has_update == 'true'
-        run: |
-          gh workflow run build-openwrt.yml --ref main
+        run: gh workflow run build-openwrt.yml --ref main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

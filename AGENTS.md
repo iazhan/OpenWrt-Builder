@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is a build wrapper for `LiBwrt/openwrt-6.x`, not the OpenWrt source tree itself. The main areas are:
+This repository is a build wrapper for `LiBwrt/LibWrt` (branch `25.12-nss`, formerly `LiBwrt/openwrt-6.x` / `main-nss`), not the OpenWrt source tree itself. The main areas are:
 
 - `configs/`: paired build inputs such as `*.config` and `*.cfg`
 - `scripts/`: pre-build helpers, including `customize.sh`, `prepare-openwrt.sh`, and `diy-*.sh`
