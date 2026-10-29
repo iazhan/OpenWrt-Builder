@@ -58,8 +58,10 @@ jobs:
             echo "has_update=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # 本 job 不检出仓库（状态存在 Cache 里），所以必须显式 --repo，
+      # 否则 gh 会去找本地 .git 并报 "not a git repository"。
       - name: 触发编译
         if: steps.check.outputs.has_update == 'true'
-        run: gh workflow run build-openwrt.yml --ref main
+        run: gh workflow run build-openwrt.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
