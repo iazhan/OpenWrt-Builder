@@ -129,6 +129,9 @@ jobs:
           fi
           grep -E '^CONFIG_TARGET_(DEVICE_)?[a-z0-9_]+=y' .config | head -20
 
+          # defconfig 会把被 select 的符号重新算回 y，NOWIFI 配置需要在这里再修剪一次
+          bash "$GITHUB_WORKSPACE/scripts/prepare-openwrt.sh" post-defconfig
+
       - name: 缓存 dl 和 ccache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:

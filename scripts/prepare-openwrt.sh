@@ -11,12 +11,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-用法：prepare-openwrt.sh <pre-feeds|load-config|run-diy-scripts|clean-downloads>
+用法：prepare-openwrt.sh <pre-feeds|load-config|run-diy-scripts|post-defconfig|clean-downloads>
 
 可用子命令：
   pre-feeds        在 feeds update 前执行 customize.sh，并覆盖 feeds.conf.default
   load-config      加载 configs/<设备>.config（找不到则回退到 default.config），延后到 DIY 后统一执行 make defconfig
   run-diy-scripts  按文件名排序执行所有 diy-*.sh 脚本
+  post-defconfig   make defconfig 之后执行（NOWIFI 时二次修剪无线符号并校验）
   clean-downloads  清理 dl 目录中的异常小文件，但保留 go-mod-cache
 EOF
 }
@@ -91,6 +92,40 @@ run_diy_scripts() {
   done
 }
 
+# make defconfig 之后执行：defconfig 会把被 select 的符号重新算成 y，
+# 这里按 cfg 再修剪一次，并校验有没有残留。
+post_defconfig() {
+  export GITHUB_WORKSPACE="${GITHUB_WORKSPACE:-${WORKSPACE_DIR}}"
+  # shellcheck source=/dev/null
+  source "${WORKSPACE_DIR}/scripts/lib-builder-config.sh"
+  # shellcheck source=/dev/null
+  source "${WORKSPACE_DIR}/scripts/lib-nowifi.sh"
+
+  local cfg_file
+  cfg_file="$(builder_cfg_path "${CONFIG_NAME}")"
+  load_builder_cfg "${cfg_file}"
+
+  if [ "${NOWIFI}" != "true" ]; then
+    echo "ℹ️ NOWIFI 未开启，跳过后置修剪"
+    return 0
+  fi
+
+  (
+    cd "${OPENWRT_DIR}"
+
+    nowifi_prune_config .config
+
+    local leaked
+    if leaked="$(nowifi_verify .config)"; then
+      echo "✅ defconfig 后置修剪完成，无线符号已全部关闭"
+    else
+      echo "⚠️ 以下无线项仍被上游依赖强制选中，改 .config 关不掉："
+      printf '%s\n' "${leaked}" | sed 's/^/   /'
+      echo "   需要从 Makefile 的 DEPENDS/DEVICE_PACKAGES 层面剔除"
+    fi
+  )
+}
+
 # 清理下载目录中的异常小文件，避免污染编译，但保留 Go 模块缓存。
 clean_downloads() {
   (
@@ -109,6 +144,9 @@ case "${1:-}" in
     ;;
   run-diy-scripts)
     run_diy_scripts
+    ;;
+  post-defconfig)
+    post_defconfig
     ;;
   clean-downloads)
     clean_downloads

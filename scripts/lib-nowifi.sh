@@ -1,0 +1,75 @@
+#!/bin/bash
+# ============================================================
+# lib-nowifi.sh - NOWIFI 剔除逻辑（共享）
+#
+# 三个地方会用到它：
+#   diy-4-nowifi.sh（defconfig 之前，改 Makefile 包列表）
+#   prepare-openwrt.sh post-defconfig（defconfig 之后，修 .config）
+# ============================================================
+
+# 需要剔除的包名（避免匹配 iwlwifi 之类的无关项）
+NOWIFI_PKG_RE='(ipq-wifi-[a-z0-9_-]+|ath[0-9]*k-firmware-[a-z0-9_-]+|kmod-ath[0-9a-z-]*|kmod-cfg80211|kmod-mac80211[a-z0-9-]*|wpad[a-z0-9-]*|hostapd[a-z0-9-]*|wifi-scripts|wireless-regdb|iwinfo|iw)'
+
+# *.config 里需要关闭的符号
+NOWIFI_SYM_RE='CONFIG_(PACKAGE_(wpad|hostapd|wifi-scripts|wireless-regdb|iwinfo|iw|kmod-(ath|cfg80211|mac80211)|ath[0-9]*k-firmware|ipq-wifi)[A-Za-z0-9_.-]*|ATH[0-9]*K_[A-Z0-9_]*|DRIVER_11[A-Z0-9_]*_SUPPORT|WLAN_SUPPORT)'
+
+# ---- 从 Makefile 的 *_PACKAGES 行里剔掉无线包 ----
+# 只动未被注释的包列表行，其他行原样保留
+nowifi_prune_package_lists() {
+  local f
+  for f in "$@"; do
+    [ -f "$f" ] || continue
+    sed -i -E "/^[^#]*[A-Z_]*PACKAGES[[:space:]]*[:+]?=/ s/${NOWIFI_PKG_RE}//g" "$f"
+  done
+}
+
+# ---- 把 .config 里的无线符号统一改成 "# CONFIG_X is not set" ----
+# 顺带清空 CONFIG_TARGET_DEVICE_PACKAGES_* 里被塞进来的无线包
+nowifi_prune_config() {
+  local cfg="${1:-.config}"
+  [ -f "$cfg" ] || return 0
+
+  local tmp="${cfg}.nowifi.$$"
+  awk -v symer="^${NOWIFI_SYM_RE}=" -v pkgre="${NOWIFI_PKG_RE}" '
+    $0 ~ symer {
+      sub(/=.*/, "")
+      print "# " $0 " is not set"
+      next
+    }
+    /^CONFIG_TARGET_DEVICE_PACKAGES_[A-Za-z0-9_.]*=/ {
+      key = $0
+      sub(/=.*/, "", key)
+      val = substr($0, length(key) + 2)
+      gsub(pkgre, "", val)
+      gsub(/  +/, " ", val)
+      sub(/[[:space:]]+$/, "", val)
+      print key "=" val
+      next
+    }
+    { print }
+  ' "$cfg" > "$tmp" && mv "$tmp" "$cfg"
+}
+
+# ---- 校验：defconfig 之后还有没有无线包被依赖强制选中 ----
+# 返回 0 表示干净，1 表示仍有残留（残留项打印到 stdout）
+nowifi_verify() {
+  local cfg="${1:-.config}"
+  [ -f "$cfg" ] || return 0
+
+  local leaked
+  leaked="$(grep -E "^${NOWIFI_SYM_RE}=y" "$cfg" 2>/dev/null || true)"
+  if [ -n "$leaked" ]; then
+    printf '%s\n' "$leaked"
+    return 1
+  fi
+
+  local dev_pkgs
+  dev_pkgs="$(grep -E '^CONFIG_TARGET_DEVICE_PACKAGES_[A-Za-z0-9_.]*=' "$cfg" 2>/dev/null \
+    | grep -E "$NOWIFI_PKG_RE" || true)"
+  if [ -n "$dev_pkgs" ]; then
+    printf '%s\n' "$dev_pkgs"
+    return 1
+  fi
+
+  return 0
+}
