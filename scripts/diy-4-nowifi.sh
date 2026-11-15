@@ -34,10 +34,17 @@ nowifi_prune_package_lists \
   target/linux/qualcommax/Makefile \
   include/target.mk
 
-# ---- 2. 清掉 .config 里的无线符号，避免 defconfig 把它们算回来 ----
+# ---- 2. 关掉无线栈目录下的全部子包 ----
+# 只关 kmod-ath11k 不够：kmod-qcom-qmi-helpers 仍会拉整包编译，
+# 但 qmi_helpers.ko 需要 ATH11K 才生成，最后打包报模块缺失
+for d in ${NOWIFI_PKG_DIRS}; do
+  nowifi_disable_subpackages "$d" .config
+done
+
+# ---- 3. 清掉 .config 里的无线符号，避免 defconfig 把它们算回来 ----
 nowifi_prune_config .config
 
-# ---- 3. 让固件里不再有 /etc/config/wireless ----
+# ---- 4. 让固件里不再有 /etc/config/wireless ----
 mkdir -p files/etc/uci-defaults
 cat > files/etc/uci-defaults/97-nowifi-cleanup <<'SCRIPT'
 #!/bin/sh
@@ -51,7 +58,7 @@ exit 0
 SCRIPT
 chmod +x files/etc/uci-defaults/97-nowifi-cleanup
 
-# ---- 4. 从 LuCI 菜单里摘掉「无线」条目（有就摘，结构变了就跳过）----
+# ---- 5. 从 LuCI 菜单里摘掉「无线」条目（有就摘，结构变了就跳过）----
 MENU_JSON="$(find feeds/luci/modules/luci-mod-network -type f -name 'luci-mod-network.json' -path '*menu.d*' 2>/dev/null | head -n1)"
 if [ -n "$MENU_JSON" ] && command -v python3 >/dev/null 2>&1; then
   mkdir -p files/usr/share/luci/menu.d

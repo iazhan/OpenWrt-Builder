@@ -113,6 +113,12 @@ post_defconfig() {
   (
     cd "${OPENWRT_DIR}"
 
+    # defconfig 会把 default y 的子包重新算回来，这里按目录整体关掉
+    local d
+    for d in ${NOWIFI_PKG_DIRS}; do
+      nowifi_disable_subpackages "$d" .config
+    done
+
     nowifi_prune_config .config
 
     local leaked
