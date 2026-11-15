@@ -8,19 +8,25 @@
 # ============================================================
 
 # 需要剔除的包名（避免匹配 iwlwifi 之类的无关项）
-NOWIFI_PKG_RE='(ipq-wifi-[a-z0-9_-]+|ath[0-9]*k-firmware-[a-z0-9_-]+|kmod-(ath|qcom|cfg80211|mac80211|lib80211)[0-9a-z-]*|wpad[a-z0-9-]*|hostapd[a-z0-9-]*|wifi-scripts|wireless-regdb|iwinfo|iw)'
+#
+# 注意 iwinfo / rpcd-mod-iwinfo / iw 必须保留：
+#   luci-mod-network: LUCI_DEPENDS:=+luci-base +rpcd-mod-iwinfo +luci-lib-uqr
+#   luci-mod-status:  LUCI_DEPENDS:=+luci-base +libiwinfo +rpcd-mod-iwinfo
+#                     PKG_BUILD_DEPENDS:=iwinfo
+# 关掉它们会直接让 rootfs 组装报缺依赖，而它们编进来只是多几十 KB，
+# 没有无线设备时 ubus 返回空列表，LuCI 自然显示"无无线设备"。
+NOWIFI_PKG_RE='(ipq-wifi-[a-z0-9_-]+|ath[0-9]*k-firmware-[a-z0-9_-]+|kmod-(ath|qcom|cfg80211|mac80211|lib80211)[0-9a-z-]*|wpad[a-z0-9-]*|hostapd[a-z0-9-]*|wifi-scripts|wireless-regdb)'
 
 # *.config 里需要关闭的符号
-NOWIFI_SYM_RE='CONFIG_(PACKAGE_(wpad|hostapd|wifi-scripts|wireless-regdb|iwinfo|iw|kmod-(ath|qcom|cfg80211|mac80211|lib80211)|ath[0-9]*k-firmware|ipq-wifi)[A-Za-z0-9_.-]*|ATH[0-9]*K_[A-Z0-9_]*|DRIVER_11[A-Z0-9_]*_SUPPORT|WLAN_SUPPORT)'
+NOWIFI_SYM_RE='CONFIG_(PACKAGE_(wpad|hostapd|wifi-scripts|wireless-regdb|kmod-(ath|qcom|cfg80211|mac80211|lib80211)|ath[0-9]*k-firmware|ipq-wifi)[A-Za-z0-9_.-]*|ATH[0-9]*K_[A-Z0-9_]*|DRIVER_11[A-Z0-9_]*_SUPPORT|WLAN_SUPPORT)'
 
 # 无线栈所在目录：目录下任何一个子包被选中，整个包都会被拉去编译
+# 不含 iwinfo / iw —— 它们要留着给 LuCI 用
 NOWIFI_PKG_DIRS="
 package/kernel/mac80211
 package/network/services/hostapd
 package/network/config/wifi-scripts
 package/firmware/wireless-regdb
-package/network/utils/iwinfo
-package/network/utils/iw
 "
 
 
