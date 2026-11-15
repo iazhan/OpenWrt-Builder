@@ -80,6 +80,9 @@ fi
   if [ -n "$THEME_CONFIG_PACKAGE" ]; then
     echo "CONFIG_PACKAGE_${THEME_CONFIG_PACKAGE}=y"
   fi
+  # aarch64 上 ruby 默认开启 YJIT，会拉入 rust/host 工具链，
+  # 而 feeds 的 rust 下载预编译 LLVM 已 404，直接导致构建失败
+  echo "# CONFIG_RUBY_ENABLE_YJIT is not set"
 } >> .config
 
 # ---- 高通平台专属调整 ----
